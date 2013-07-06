@@ -1,79 +1,743 @@
-<!DOCTYPE html>
-<html>
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="高野 将" />
+  <title>VCS入門ができるまで</title>
+  <style type="text/css">
+    code {
+      white-space: pre;
+    }
 
-  <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Nds32 : " />
+    body {
+      margin: 0 0 0 0;
+      padding: 0 0 0 0;
+      width: 100%;
+      height: 100%;
+      color: #eeeeee;
+      background-color: #111111;
+      font-family: "Gill Sans", GillSans, sans-serif;
+      font-size: 14pt;
+    }
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+    div.toolbar {
+      position: fixed;
+      z-index: 200;
+      top: auto;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1.2em;
+      text-align: right;
+      padding-left: 1em;
+      padding-right: 1em;
+      font-size: 60%;
+      color: red;
+      background-color: rgb(240,240,240);
+      border-top: solid 1px rgb(180,180,180);
+    }
 
-    <title>Nds32</title>
-  </head>
+      div.toolbar span.copyright {
+        color: black;
+        margin-left: 0.5em;
+      }
 
-  <body>
+    div.initial_prompt {
+      position: absolute;
+      z-index: 1000;
+      bottom: 1.2em;
+      width: 100%;
+      background-color: rgb(200,200,200);
+      opacity: 0.35;
+      background-color: rgb(200,200,200, 0.35);
+      cursor: pointer;
+    }
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/masaru-b-cl/nds32">View on GitHub</a>
+      div.initial_prompt p.help {
+        text-align: center;
+      }
 
-          <h1 id="project_title">Nds32</h1>
-          <h2 id="project_tagline"></h2>
+      div.initial_prompt p.close {
+        text-align: right;
+        font-style: italic;
+      }
 
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/masaru-b-cl/nds32/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/masaru-b-cl/nds32/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
+    div.slidy_toc {
+      position: absolute;
+      z-index: 300;
+      width: 60%;
+      max-width: 30em;
+      height: 30em;
+      overflow: auto;
+      top: auto;
+      right: auto;
+      left: 4em;
+      bottom: 4em;
+      padding: 1em;
+      background: rgb(240,240,240);
+      border-style: solid;
+      border-width: 2px;
+      font-size: 60%;
+    }
 
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+      div.slidy_toc .toc_heading {
+        text-align: center;
+        width: 100%;
+        margin: 0;
+        margin-bottom: 1em;
+        border-bottom-style: solid;
+        border-bottom-color: rgb(180,180,180);
+        border-bottom-width: 1px;
+      }
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+    div.slide {
+      z-index: 20;
+      margin: 0 0 0 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      padding-left: 20px;
+      padding-right: 20px;
+      border-width: 0;
+      clear: both;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      line-height: 120%;
+      background-color: transparent;
+    }
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
+    div.background {
+      display: none;
+    }
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+    div.handout {
+      margin-left: 20px;
+      margin-right: 20px;
+    }
 
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+    div.slide.titlepage {
+      text-align: center;
+    }
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+      div.slide.titlepage h1 {
+        padding-top: 10%;
+        margin-right: 0;
+        font-size: 200%;
+      }
 
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+    div.slide h1 {
+      padding-left: 0;
+      padding-right: 20pt;
+      padding-top: 4pt;
+      padding-bottom: 4pt;
+      margin-top: 0;
+      margin-left: 0;
+      margin-right: 60pt;
+      margin-bottom: 0.5em;
+      display: block;
+      font-size: 160%;
+      line-height: 1.2em;
+      background: transparent;
+      color: lightblue;
+    }
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+    @media screen and (max-device-width: 1024px) {
+      div.slide {
+        font-size: 100%;
+      }
+    }
 
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+    @media screen and (max-device-width: 800px) {
+      div.slide {
+        font-size: 200%;
+      }
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+      div.slidy_toc {
+        top: 1em;
+        left: 1em;
+        right: auto;
+        width: 80%;
+        font-size: 180%;
+      }
+    }
 
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+    div.toc-heading {
+      width: 100%;
+      border-bottom: solid 1px rgb(180,180,180);
+      margin-bottom: 1em;
+      text-align: center;
+    }
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-      </section>
-    </div>
+    img {
+      image-rendering: optimize-quality;
+    }
 
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Nds32 maintained by <a href="https://github.com/masaru-b-cl">masaru-b-cl</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
+    pre {
+      font-size: 80%;
+      font-weight: bold;
+      line-height: 120%;
+      padding-top: 0.2em;
+      padding-bottom: 0.2em;
+      padding-left: 1em;
+      padding-right: 1em;
+      border-style: solid;
+      border-left-width: 1em;
+      border-top-width: thin;
+      border-right-width: thin;
+      border-bottom-width: thin;
+      border-color: #95ABD0;
+      color: #00428C;
+      background-color: #E4E5E7;
+    }
 
-    
+    li pre {
+      margin-left: 0;
+    }
 
-  </body>
+    blockquote {
+      font-style: italic;
+    }
+
+    img {
+      background-color: transparent;
+    }
+
+    p.copyright {
+      font-size: smaller;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .footnote {
+      font-size: smaller;
+      margin-left: 2em;
+    }
+
+    a img {
+      border-width: 0;
+      border-style: none;
+    }
+
+    a:visited {
+      color: cornflowerblue;
+    }
+
+    a:link {
+      color: cornflowerblue;
+    }
+
+    a:hover {
+      color: navy;
+      text-decoration: underline;
+    }
+
+    a:active {
+      color: red;
+      text-decoration: underline;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    .toolbar a:link {
+      color: blue;
+    }
+
+    .toolbar a:visited {
+      color: blue;
+    }
+
+    .toolbar a:active {
+      color: red;
+    }
+
+    .toolbar a:hover {
+      color: red;
+    }
+
+    ul {
+      list-style-type: square;
+    }
+
+      ul ul {
+        list-style-type: disc;
+      }
+
+        ul ul ul {
+          list-style-type: circle;
+        }
+
+          ul ul ul ul {
+            list-style-type: disc;
+          }
+
+    li {
+      margin-left: 0.5em;
+      margin-top: 0.5em;
+    }
+
+      li li {
+        font-size: 85%;
+        font-style: italic;
+      }
+
+        li li li {
+          font-size: 85%;
+          font-style: normal;
+        }
+
+    div dt {
+      margin-left: 0;
+      margin-top: 1em;
+      margin-bottom: 0.5em;
+      font-weight: bold;
+    }
+
+    div dd {
+      margin-left: 2em;
+      margin-bottom: 0.5em;
+    }
+
+
+    p, pre, ul, ol, blockquote, h2, h3, h4, h5, h6, dl, table {
+      margin-left: 1em;
+      margin-right: 1em;
+    }
+
+      p.subhead {
+        font-weight: bold;
+        margin-top: 2em;
+      }
+
+    .smaller {
+      font-size: smaller;
+    }
+
+    .bigger {
+      font-size: 130%;
+    }
+
+    td, th {
+      padding: 0.2em;
+    }
+
+    ul {
+      margin: 0.5em 1.5em 0.5em 1.5em;
+      padding: 0;
+    }
+
+    ol {
+      margin: 0.5em 1.5em 0.5em 1.5em;
+      padding: 0;
+    }
+
+    ul {
+      list-style-type: square;
+    }
+
+      ul ul {
+        list-style-type: disc;
+      }
+
+        ul ul ul {
+          list-style-type: circle;
+        }
+
+          ul ul ul ul {
+            list-style-type: disc;
+          }
+
+      ul li {
+        list-style: square;
+        margin: 0.1em 0em 0.6em 0;
+        padding: 0 0 0 0;
+        line-height: 140%;
+      }
+
+    ol li {
+      margin: 0.1em 0em 0.6em 1.5em;
+      padding: 0 0 0 0px;
+      line-height: 140%;
+      list-style-type: decimal;
+    }
+
+    li ul li {
+      font-size: 85%;
+      font-style: italic;
+      list-style-type: disc;
+      background: transparent;
+      padding: 0 0 0 0;
+    }
+
+    li li ul li {
+      font-size: 85%;
+      font-style: normal;
+      list-style-type: circle;
+      background: transparent;
+      padding: 0 0 0 0;
+    }
+
+    li li li ul li {
+      list-style-type: disc;
+      background: transparent;
+      padding: 0 0 0 0;
+    }
+
+    li ol li {
+      list-style-type: decimal;
+    }
+
+
+    li li ol li {
+      list-style-type: decimal;
+    }
+
+    /*
+ setting class="outline on ol or ul makes it behave as an
+ ouline list where blocklevel content in li elements is
+ hidden by default and can be expanded or collapsed with
+ mouse click. Set class="expand" on li to override default
+*/
+
+    ol.outline li:hover {
+      cursor: pointer;
+    }
+
+    ol.outline li.nofold:hover {
+      cursor: default;
+    }
+
+    ul.outline li:hover {
+      cursor: pointer;
+    }
+
+    ul.outline li.nofold:hover {
+      cursor: default;
+    }
+
+    ol.outline {
+      list-style: decimal;
+    }
+
+      ol.outline ol {
+        list-style-type: lower-alpha;
+      }
+
+      ol.outline li.nofold {
+        padding: 0 0 0 20px;
+        background: transparent url(../graphics/nofold-dim.gif) no-repeat 0px 0.5em;
+      }
+
+      ol.outline li.unfolded {
+        padding: 0 0 0 20px;
+        background: transparent url(../graphics/fold-dim.gif) no-repeat 0px 0.5em;
+      }
+
+      ol.outline li.folded {
+        padding: 0 0 0 20px;
+        background: transparent url(../graphics/unfold-dim.gif) no-repeat 0px 0.5em;
+      }
+
+      ol.outline li.unfolded:hover {
+        padding: 0 0 0 20px;
+        background: transparent url(../graphics/fold.gif) no-repeat 0px 0.5em;
+      }
+
+      ol.outline li.folded:hover {
+        padding: 0 0 0 20px;
+        background: transparent url(../graphics/unfold.gif) no-repeat 0px 0.5em;
+      }
+
+    ul.outline li.nofold {
+      padding: 0 0 0 20px;
+      background: transparent url(../graphics/nofold-dim.gif) no-repeat 0px 0.5em;
+    }
+
+    ul.outline li.unfolded {
+      padding: 0 0 0 20px;
+      background: transparent url(../graphics/fold-dim.gif) no-repeat 0px 0.5em;
+    }
+
+    ul.outline li.folded {
+      padding: 0 0 0 20px;
+      background: transparent url(../graphics/unfold-dim.gif) no-repeat 0px 0.5em;
+    }
+
+    ul.outline li.unfolded:hover {
+      padding: 0 0 0 20px;
+      background: transparent url(../graphics/fold.gif) no-repeat 0px 0.5em;
+    }
+
+    ul.outline li.folded:hover {
+      padding: 0 0 0 20px;
+      background: transparent url(../graphics/unfold.gif) no-repeat 0px 0.5em;
+    }
+
+    /* for slides with class "title" in table of contents */
+    a.titleslide {
+      font-weight: bold;
+      font-style: italic;
+    }
+
+    /*
+ hide images for work around for save as bug
+ where browsers fail to save images used by CSS
+*/
+    img.hidden {
+      display: none;
+      visibility: hidden;
+    }
+
+    div.initial_prompt {
+      display: none;
+      visibility: hidden;
+    }
+
+    div.slide {
+      visibility: visible;
+      position: inherit;
+    }
+
+    div.handout {
+      border-top-style: solid;
+      border-top-width: thin;
+      border-top-color: black;
+    }
+
+    @media screen {
+      .hidden {
+        display: none;
+        visibility: visible;
+      }
+
+      div.slide.hidden {
+        display: block;
+        visibility: visible;
+      }
+
+      div.handout.hidden {
+        display: block;
+        visibility: visible;
+      }
+
+      div.background {
+        display: none;
+        visibility: hidden;
+      }
+
+      body.single_slide div.initial_prompt {
+        display: block;
+        visibility: visible;
+      }
+
+      body.single_slide div.background {
+        display: block;
+        visibility: visible;
+      }
+
+        body.single_slide div.background.hidden {
+          display: none;
+          visibility: hidden;
+        }
+
+      body.single_slide .invisible {
+        visibility: hidden;
+      }
+
+      body.single_slide .hidden {
+        display: none;
+        visibility: hidden;
+      }
+
+      body.single_slide div.slide {
+        position: absolute;
+      }
+
+      body.single_slide div.handout {
+        display: none;
+        visibility: hidden;
+      }
+    }
+
+    @media print {
+      .hidden {
+        display: block;
+        visibility: visible;
+      }
+
+      div.slide pre {
+        font-size: 60%;
+        padding-left: 0.5em;
+      }
+
+      div.toolbar {
+        display: none;
+        visibility: hidden;
+      }
+
+      div.slidy_toc {
+        display: none;
+        visibility: hidden;
+      }
+
+      div.background {
+        display: none;
+        visibility: hidden;
+      }
+
+      div.slide {
+        page-break-before: always;
+      }
+        /* :first-child isn't reliable for print media */
+        div.slide.first-slide {
+          page-break-before: avoid;
+        }
+    }
+  </style>
+  <!--
+    <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  -->
+  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js.gz"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+  <div class="slide titlepage">
+    <h1 class="title">VCS入門ができるまで</h1>
+    <p class="author">
+      高野 将
+    </p>
+    <p class="date">2013/7/6 - <a href="https://twitter.com/search/realtime?q=%23nds32&amp;src=typd">#nds32</a></p>
+  </div>
+  <div id="自己紹介" class="slide section level1">
+    <h1>自己紹介</h1>
+    <ul>
+      <li><a href="https://twitter.com/masaru_b_cl">@masaru_b_cl</a><br />
+        <img src="https://lh5.googleusercontent.com/-ybeqLZyZBRc/TiqGc46kXzI/AAAAAAAAA_g/995Gmv210nI/s300-no/kyupi-n_large.jpg" /><br />
+        <blockquote>
+          C#とかGitとかTDDとかビルドとか洗濯とかアイロンとかを主に嗜んでおります / 柿チョコは認めません
+        </blockquote>
+      </li>
+    </ul>
+  </div>
+  <div id="そもそもなぜ書こうと思ったか" class="slide section level1">
+    <h1>そもそもなぜ書こうと思ったか</h1>
+    <ul>
+      <li>弊社の新人教育担当になってしまった</li>
+    </ul>
+  </div>
+  <div id="動機は" class="slide section level1">
+    <h1>動機は？</h1>
+    <ul>
+      <li>元々新入社員研修はVCS使っていなかった
+        <ul>
+          <li>業務では使っているにもかかわらず</li>
+        </ul>
+      </li>
+      <li>これではいけない！</li>
+    </ul>
+  </div>
+  <div id="なぜ自分で" class="slide section level1">
+    <h1>なぜ自分で？</h1>
+    <ul>
+      <li>世の中には情報があふれている</li>
+      <li>しかし……
+        <ul>
+          <li>特定のVCSに特化している</li>
+          <li>詳細すぎる</li>
+        </ul>
+      </li>
+      <li>ざっくりと知るための資料が必要！</li>
+    </ul>
+  </div>
+  <div id="最初にやったこと" class="slide section level1">
+    <h1>最初にやったこと</h1>
+    <ul>
+      <li>自分の理解しているVCSの情報をいったん全部出す</li>
+      <li>情報を分類、整理
+        <ul>
+          <li>足りない情報はWeb調査</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <div id="書く前に" class="slide section level1">
+    <h1>書く前に</h1>
+    <ul>
+      <li>文書の目的設定
+        <ul>
+          <li>想定読者</li>
+          <li>ゴール</li>
+        </ul>
+      </li>
+      <li>説明の道筋を考える
+        <ul>
+          <li>何を書くか</li>
+          <li>順番をどうするか</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <div id="書く" class="slide section level1">
+    <h1>書く</h1>
+    <ul>
+      <li>書くべし
+        <ul>
+          <li>書くべし
+            <ul>
+              <li>書くべし</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <div id="できた" class="slide section level1">
+    <h1>できた！</h1>
+    <ul>
+      <li><a href="https://github.com/masaru-b-cl/introduction-to-vcs">VCS入門</a><br />
+        <img src="http://gyazo.com/2ab38e97d448f5fdd27b4e42b20f09f2.png" alt="VCS入門" /></li>
+    </ul>
+  </div>
+  <div id="後日談" class="slide section level1">
+    <h1>後日談</h1>
+    <ul>
+      <li>ライセンスをCC BY-SAに
+        <ul>
+          <li>誰でも使えます</li>
+        </ul>
+      </li>
+      <li>継続的な修正
+        <ul>
+          <li>フィードバックを元に修正</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <div id="さああなたも書いてみよう" class="slide section level1">
+    <h1>さあ、あなたも書いてみよう</h1>
+    <ul>
+      <li>入門を書くと、こんな利点が！
+        <ul>
+          <li>自分の知識が整理される</li>
+          <li>みんなに「すごい」って言ってもらえる</li>
+          <li>マサカリが飛んでくる
+            <ul>
+              <li>※マサカリ<br />
+                その道の達人からのありがたいツッコミ</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</body>
 </html>
